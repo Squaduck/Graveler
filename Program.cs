@@ -35,67 +35,67 @@ class Program
             for (int i = 0; i < 231 / 31; i++)
             {
                 l = threadLocal.r.NextInt64(); // 63 random bits. each dice roll is 2 bits. 31 dice rolls per long 
-                if ((l & 0b11) == 0)
+                if ((l & 0b11L) == 0)
                     NumberOf1sRolled++;
-                if ((l & (0b11 << 2)) == 0)
+                if ((l & (0b11L << 2)) == 0)
                     NumberOf1sRolled++;
-                if ((l & (0b11 << 4)) == 0)
+                if ((l & (0b11L << 4)) == 0)
                     NumberOf1sRolled++;
-                if ((l & (0b11 << 6)) == 0)
+                if ((l & (0b11L << 6)) == 0)
                     NumberOf1sRolled++;
-                if ((l & (0b11 << 8)) == 0)
+                if ((l & (0b11L << 8)) == 0)
                     NumberOf1sRolled++;
-                if ((l & (0b11 << 10)) == 0)
+                if ((l & (0b11L << 10)) == 0)
                     NumberOf1sRolled++;
-                if ((l & (0b11 << 12)) == 0)
+                if ((l & (0b11L << 12)) == 0)
                     NumberOf1sRolled++;
-                if ((l & (0b11 << 14)) == 0)
+                if ((l & (0b11L << 14)) == 0)
                     NumberOf1sRolled++;
-                if ((l & (0b11 << 16)) == 0)
+                if ((l & (0b11L << 16)) == 0)
                     NumberOf1sRolled++;
-                if ((l & (0b11 << 18)) == 0)
+                if ((l & (0b11L << 18)) == 0)
                     NumberOf1sRolled++;
-                if ((l & (0b11 << 20)) == 0)
+                if ((l & (0b11L << 20)) == 0)
                     NumberOf1sRolled++;
-                if ((l & (0b11 << 22)) == 0)
+                if ((l & (0b11L << 22)) == 0)
                     NumberOf1sRolled++;
-                if ((l & (0b11 << 24)) == 0)
+                if ((l & (0b11L << 24)) == 0)
                     NumberOf1sRolled++;
-                if ((l & (0b11 << 26)) == 0)
+                if ((l & (0b11L << 26)) == 0)
                     NumberOf1sRolled++;
-                if ((l & (0b11 << 28)) == 0)
+                if ((l & (0b11L << 28)) == 0)
                     NumberOf1sRolled++;
-                if ((l & (0b11 << 30)) == 0)
+                if ((l & (0b11L << 30)) == 0)
                     NumberOf1sRolled++;
-                if ((l & (0b11 << 32)) == 0)
+                if ((l & (0b11L << 32)) == 0)
                     NumberOf1sRolled++;
-                if ((l & (0b11 << 34)) == 0)
+                if ((l & (0b11L << 34)) == 0)
                     NumberOf1sRolled++;
-                if ((l & (0b11 << 36)) == 0)
+                if ((l & (0b11L << 36)) == 0)
                     NumberOf1sRolled++;
-                if ((l & (0b11 << 38)) == 0)
+                if ((l & (0b11L << 38)) == 0)
                     NumberOf1sRolled++;
-                if ((l & (0b11 << 40)) == 0)
+                if ((l & (0b11L << 40)) == 0)
                     NumberOf1sRolled++;
-                if ((l & (0b11 << 42)) == 0)
+                if ((l & (0b11L << 42)) == 0)
                     NumberOf1sRolled++;
-                if ((l & (0b11 << 44)) == 0)
+                if ((l & (0b11L << 44)) == 0)
                     NumberOf1sRolled++;
-                if ((l & (0b11 << 46)) == 0)
+                if ((l & (0b11L << 46)) == 0)
                     NumberOf1sRolled++;
-                if ((l & (0b11 << 48)) == 0)
+                if ((l & (0b11L << 48)) == 0)
                     NumberOf1sRolled++;
-                if ((l & (0b11 << 50)) == 0)
+                if ((l & (0b11L << 50)) == 0)
                     NumberOf1sRolled++;
-                if ((l & (0b11 << 52)) == 0)
+                if ((l & (0b11L << 52)) == 0)
                     NumberOf1sRolled++;
-                if ((l & (0b11 << 54)) == 0)
+                if ((l & (0b11L << 54)) == 0)
                     NumberOf1sRolled++;
-                if ((l & (0b11 << 56)) == 0)
+                if ((l & (0b11L << 56)) == 0)
                     NumberOf1sRolled++;
-                if ((l & (0b11 << 58)) == 0)
+                if ((l & (0b11L << 58)) == 0)
                     NumberOf1sRolled++;
-                if ((l & (0b11 << 60)) == 0)
+                if ((l & (0b11L << 60)) == 0)
                     NumberOf1sRolled++;
             }
             for (int i = 0; i < 231 % 31; i++)
