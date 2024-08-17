@@ -1,7 +1,7 @@
-﻿/* Attempt 1
-real    12m21.808s -- Actual execution time.
-user    59m18.304s -- "CPU Seconds" in user mode   - Since this is multithreaded, it is more than the actual time.
-sys     17m48.641s -- "CPU Seconds" in kernel mode - Since this is multithreaded, it is more than the actual time.
+﻿/* Attempt 2 
+real    9m52.863s
+user    40m28.347s
+sys     27m29.979s
 */
 
 namespace Graveler;
@@ -27,10 +27,13 @@ class Program
             Round round = new();
             round.Run();
 
-            lock (to_be_locked) // Might be very slow. EVERY SINGLE ROUND IS WAITING ON THIS LOCK.
+            if (round.times_that_a_1_is_rolled > highest_amount_of_1s_rolled)
             {
-                if (round.times_that_a_1_is_rolled > highest_amount_of_1s_rolled)
-                    highest_amount_of_1s_rolled = round.times_that_a_1_is_rolled;
+                lock (to_be_locked)
+                {
+                    if (round.times_that_a_1_is_rolled > highest_amount_of_1s_rolled)
+                        highest_amount_of_1s_rolled = round.times_that_a_1_is_rolled;
+                }
             }
         });
 
