@@ -27,7 +27,7 @@ class Program
         ToBeLocked toBeLocked = new(); // For thread safety.
         const int NUM_ROUNDS_TO_SIM = 1000000000;
 
-        Parallel.For(0, NUM_ROUNDS_TO_SIM, (x) => 
+        Parallel.For(0, NUM_ROUNDS_TO_SIM, (x) =>
         {
             Random r = new();
             byte NumberOf1sRolled = 0;
@@ -52,7 +52,7 @@ class Program
 
         Console.WriteLine($"Highest number of 1s rolled in {NUM_ROUNDS_TO_SIM} rounds: {HighestNumberOf1sRolled}");
         Console.WriteLine($"Ran in {sw.Elapsed}");
-    }   
+    }
 }
 
-class ToBeLocked{};
+class ToBeLocked { };
