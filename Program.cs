@@ -1,9 +1,9 @@
-﻿/* Attempt 3
-Ran in 00:09:25.4170262 -- Output from program itself
+﻿/* Attempt 4
+Ran in 00:04:31.9084680
 
-real    9m29.226s -- Includes compilation
-user    37m9.127s
-sys     31m7.335s
+real    4m35.743s
+user    35m10.645s
+sys     0m1.246s
 */
 
 namespace Graveler;
@@ -27,24 +27,24 @@ class Program
         ToBeLocked toBeLocked = new(); // For thread safety.
         const int NUM_ROUNDS_TO_SIM = 1000000000;
 
-        Parallel.For(0, NUM_ROUNDS_TO_SIM, (x) =>
+        Parallel.For<RandAndByte>(0, NUM_ROUNDS_TO_SIM, () => new(), (x, loopState, threadLocal) =>
         {
-            Random r = new();
             byte NumberOf1sRolled = 0;
 
             for (int i = 0; i < 231; i++)
             {
-                if (r.Next(4) == 0)
+                if (threadLocal.r.Next(4) == 0)
                     NumberOf1sRolled++;
             }
 
-            if (NumberOf1sRolled > HighestNumberOf1sRolled) // Quick and dirty solution.
+            threadLocal.b = NumberOf1sRolled > threadLocal.b ? NumberOf1sRolled : threadLocal.b;
+            return threadLocal;
+        }, (x) => 
+        {
+            lock (toBeLocked)
             {
-                lock (toBeLocked)
-                {
-                    if (NumberOf1sRolled > HighestNumberOf1sRolled)
-                        HighestNumberOf1sRolled = NumberOf1sRolled;
-                }
+                if (x.b > HighestNumberOf1sRolled)
+                    HighestNumberOf1sRolled = x.b;
             }
         });
 
@@ -56,3 +56,14 @@ class Program
 }
 
 class ToBeLocked { };
+
+struct RandAndByte 
+{
+    public Random r;
+    public byte b;
+    public RandAndByte()
+    {
+        r = new();
+        b = 0;
+    }
+};
