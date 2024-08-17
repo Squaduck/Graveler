@@ -1,12 +1,15 @@
-﻿/* Attempt 2 
-real    9m52.863s
-user    40m28.347s
-sys     27m29.979s
+﻿/* Attempt 3
+Ran in 00:09:25.4170262 -- Output from program itself
+
+real    9m29.226s -- Includes compilation
+user    37m9.127s
+sys     31m7.335s
 */
 
 namespace Graveler;
 
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 class Program
@@ -18,47 +21,38 @@ class Program
         // We want to track the highest number of times a '1' is rolled in a round
         // Inspired by https://www.youtube.com/watch?v=M8C8dHQE2Ro where a program solving the same problem took 8 days to run for 1 billion rounds
 
-        byte highest_amount_of_1s_rolled = 0;
-        To_be_locked to_be_locked = new(); // For thread safety.
-        const int Num_Rounds_To_Sim = 1000000000;
+        Stopwatch sw = Stopwatch.StartNew();
 
-        Parallel.For(0, Num_Rounds_To_Sim, (x) => 
+        byte HighestNumberOf1sRolled = 0;
+        ToBeLocked toBeLocked = new(); // For thread safety.
+        const int NUM_ROUNDS_TO_SIM = 1000000000;
+
+        Parallel.For(0, NUM_ROUNDS_TO_SIM, (x) => 
         {
-            Round round = new();
-            round.Run();
+            Random r = new();
+            byte NumberOf1sRolled = 0;
 
-            if (round.times_that_a_1_is_rolled > highest_amount_of_1s_rolled)
+            for (int i = 0; i < 231; i++)
             {
-                lock (to_be_locked)
+                if (r.Next(4) == 0)
+                    NumberOf1sRolled++;
+            }
+
+            if (NumberOf1sRolled > HighestNumberOf1sRolled) // Quick and dirty solution.
+            {
+                lock (toBeLocked)
                 {
-                    if (round.times_that_a_1_is_rolled > highest_amount_of_1s_rolled)
-                        highest_amount_of_1s_rolled = round.times_that_a_1_is_rolled;
+                    if (NumberOf1sRolled > HighestNumberOf1sRolled)
+                        HighestNumberOf1sRolled = NumberOf1sRolled;
                 }
             }
         });
 
-        Console.WriteLine($"Highest number of 1s rolled in {Num_Rounds_To_Sim} rounds: {highest_amount_of_1s_rolled}");
+        sw.Stop();
+
+        Console.WriteLine($"Highest number of 1s rolled in {NUM_ROUNDS_TO_SIM} rounds: {HighestNumberOf1sRolled}");
+        Console.WriteLine($"Ran in {sw.Elapsed}");
     }   
 }
 
-class Round
-{
-    Random r;
-    public byte times_that_a_1_is_rolled;
-
-    public Round()
-    {
-        r = new();
-    }
-
-    public void Run()
-    {
-        for(int i = 0; i < 231; i++)
-        {
-            if (r.Next(4) == 0)
-                times_that_a_1_is_rolled++;
-        }
-    }
-}
-
-class To_be_locked{};
+class ToBeLocked{};
