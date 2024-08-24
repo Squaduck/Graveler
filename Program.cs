@@ -1,9 +1,9 @@
-﻿/* Attempt 5.5
-Ran in 00:01:22.7753993
+﻿/* Attempt 6
+Ran in 00:00:30.5803873
 
-real    1m24.636s
-user    10m50.635s
-sys     0m0.625s
+real    0m32.485s
+user    3m59.031s
+sys     0m0.305s
 */
 
 namespace Graveler;
@@ -11,6 +11,7 @@ namespace Graveler;
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using System.Numerics;
 
 class Program
 {
@@ -30,43 +31,17 @@ class Program
         Parallel.For<RandAndByte>(0, NUM_ROUNDS_TO_SIM, () => new(), (x, loopState, threadLocal) =>
         {
             byte NumberOf1sRolled = 0;
-            int l = 0;
 
-            for (int i = 0; i < 231 / 15; i++)
+            for (int i = 0; i < 231 / 31; i++)
             {
-                l = threadLocal.r.Next(); // 31 random bits. each dice roll is 2 bits. 15 dice rolls per long 
-                if ((l & 0b11) == 0)
-                    NumberOf1sRolled++;
-                if ((l & (0b11 << 2)) == 0)
-                    NumberOf1sRolled++;
-                if ((l & (0b11 << 4)) == 0)
-                    NumberOf1sRolled++;
-                if ((l & (0b11 << 6)) == 0)
-                    NumberOf1sRolled++;
-                if ((l & (0b11 << 8)) == 0)
-                    NumberOf1sRolled++;
-                if ((l & (0b11 << 10)) == 0)
-                    NumberOf1sRolled++;
-                if ((l & (0b11 << 12)) == 0)
-                    NumberOf1sRolled++;
-                if ((l & (0b11 << 14)) == 0)
-                    NumberOf1sRolled++;
-                if ((l & (0b11 << 16)) == 0)
-                    NumberOf1sRolled++;
-                if ((l & (0b11 << 18)) == 0)
-                    NumberOf1sRolled++;
-                if ((l & (0b11 << 20)) == 0)
-                    NumberOf1sRolled++;
-                if ((l & (0b11 << 22)) == 0)
-                    NumberOf1sRolled++;
-                if ((l & (0b11 << 24)) == 0)
-                    NumberOf1sRolled++;
-                if ((l & (0b11 << 26)) == 0)
-                    NumberOf1sRolled++;
-                if ((l & (0b11 << 28)) == 0)
-                    NumberOf1sRolled++;
+                // Generate 2 random numbers each with 31 random bits. (Sign bit is never set.)
+                // AND them together, resulting in a number where each bit is set only if both of the corresponding bits were set in the original numbers.
+                // The odds of each bit being set in each original number is 50/50, so its 1/4 odds that the same bit in each of the numbers was set. 
+                // Just count the number of bits set in the result, and it's equivalent to the number of 1's rolled in 31 d4 rolls.
+                // This is a very bad explanation, but I think my math checks out.
+                NumberOf1sRolled += (byte)BitOperations.PopCount((uint)(threadLocal.r.Next() & threadLocal.r.Next()));
             }
-            for (int i = 0; i < 231 % 15; i++)
+            for (int i = 0; i < 231 % 31; i++)
             {
                 if (threadLocal.r.Next(4) == 0)
                     NumberOf1sRolled++;
