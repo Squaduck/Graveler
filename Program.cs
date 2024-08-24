@@ -1,9 +1,9 @@
-﻿/* Attempt 6
-Ran in 00:00:30.5803873
+﻿/* Attempt 7
+Ran in 00:00:08.6363016
 
-real    0m32.485s
-user    3m59.031s
-sys     0m0.305s
+real    0m10.370s
+user    1m7.437s
+sys     0m0.319s
 */
 
 namespace Graveler;
@@ -32,20 +32,25 @@ class Program
         {
             byte NumberOf1sRolled = 0;
 
-            for (int i = 0; i < 231 / 31; i++)
+            for (int i = 0; i < 231 / 63; i++)
             {
                 // Generate 2 random numbers each with 31 random bits. (Sign bit is never set.)
                 // AND them together, resulting in a number where each bit is set only if both of the corresponding bits were set in the original numbers.
                 // The odds of each bit being set in each original number is 50/50, so its 1/4 odds that the same bit in each of the numbers was set. 
                 // Just count the number of bits set in the result, and it's equivalent to the number of 1's rolled in 31 d4 rolls.
                 // This is a very bad explanation, but I think my math checks out.
-                NumberOf1sRolled += (byte)BitOperations.PopCount((uint)(threadLocal.r.Next() & threadLocal.r.Next()));
+                NumberOf1sRolled += (byte)BitOperations.PopCount((ulong)(threadLocal.r.NextInt64() & threadLocal.r.NextInt64()));
             }
-            for (int i = 0; i < 231 % 31; i++)
-            {
-                if (threadLocal.r.Next(4) == 0)
-                    NumberOf1sRolled++;
-            }
+            // 231 % 63 = 42
+            // The loop above misses 42 dice rolls.
+            // This does a similar thing to the loop above, but then only takes the last 42 bits of it.
+            // That 
+            NumberOf1sRolled += (byte)BitOperations.PopCount((ulong)(threadLocal.r.NextInt64() & threadLocal.r.NextInt64()) & 0b111111111111111111111111111111111111111111);
+            //for (int i = 0; i < 231 % 63; i++)
+            //{
+            //    if (threadLocal.r.Next(4) == 0)
+            //        NumberOf1sRolled++;
+            //}
 
             threadLocal.b = NumberOf1sRolled > threadLocal.b ? NumberOf1sRolled : threadLocal.b;
             return threadLocal;
