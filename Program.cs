@@ -44,7 +44,6 @@ class Program
             // 231 % 63 = 42
             // The loop above misses 42 dice rolls.
             // This does a similar thing to the loop above, but then only takes the last 42 bits of it.
-            // That 
             NumberOf1sRolled += (byte)BitOperations.PopCount((ulong)(threadLocal.r.NextInt64() & threadLocal.r.NextInt64()) & 0b111111111111111111111111111111111111111111);
             //for (int i = 0; i < 231 % 63; i++)
             //{
