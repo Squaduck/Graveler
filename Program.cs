@@ -23,7 +23,8 @@ class Program
         // We want to track the highest number of times a '1' is rolled in a round
         // Inspired by https://www.youtube.com/watch?v=M8C8dHQE2Ro where a program solving the same problem took 8 days to run for 1 billion rounds
 
-        //Console.WriteLine($"Vector256<byte>.IsSupported: {Vector256<byte>.IsSupported}\nVector256.IsHardwareAccelerated: {Vector256.IsHardwareAccelerated}");
+        if(!(Vector256<byte>.IsSupported && Vector256.IsHardwareAccelerated))
+            Console.WriteLine($"WARNING:\nVector256<byte>.IsSupported: {Vector256<byte>.IsSupported}\nVector256.IsHardwareAccelerated: {Vector256.IsHardwareAccelerated}\nThe previous implementation may be faster on this CPU.");
 
         Stopwatch sw = Stopwatch.StartNew();
 
@@ -52,20 +53,29 @@ class Program
             256-231=25
             */
 
-            byte[] randBytes = new byte[64];
+            // Get random bytes
+            Span<byte> randBytes = stackalloc byte[64];
             threadLocal.r.NextBytes(randBytes);
 
-            Vector256<byte> a = Vector256.Create(randBytes);
+            // Make a read-only span out of it so the Vector256 constructor accepts it
+            ReadOnlySpan<byte> ro = randBytes;
 
-            Vector256<byte> b = Vector256.Create(randBytes, 32);
+            // Create a Vector256 out of the first 32 bytes
+            Vector256<byte> a = Vector256.Create(ro);
 
+            // Create a Vector256 out of the second 32 bytes
+            Vector256<byte> b = Vector256.Create(ro[32..]);
+
+            // AND them together and reinterpret as int64s for less PopCount calls.
             Vector256<long> c = Vector256.BitwiseAnd(a, b).AsInt64();
 
-            NumberOf1sRolled = (byte)BitOperations.PopCount((ulong)c[0]);
-            NumberOf1sRolled += (byte)BitOperations.PopCount((ulong)c[1]);
-            NumberOf1sRolled += (byte)BitOperations.PopCount((ulong)c[2]);
-            NumberOf1sRolled += (byte)BitOperations.PopCount((ulong)c[3] >>> 25); // Discard 25 bits.
+            // Get PopCount. 
+            NumberOf1sRolled = unchecked((byte)BitOperations.PopCount((ulong)c[0]));
+            NumberOf1sRolled += unchecked((byte)BitOperations.PopCount((ulong)c[1]));
+            NumberOf1sRolled += unchecked((byte)BitOperations.PopCount((ulong)c[2]));
+            NumberOf1sRolled += unchecked((byte)BitOperations.PopCount((ulong)c[3] >>> 25)); // Discard 25 bits.
 
+            // Parallel reduction stuff. If this go round was our best, save it.
             threadLocal.b = NumberOf1sRolled > threadLocal.b ? NumberOf1sRolled : threadLocal.b;
             return threadLocal;
         }, (x) =>
