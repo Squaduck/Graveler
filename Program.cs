@@ -1,9 +1,10 @@
-﻿/* Attempt 7
-Ran in 00:00:08.6363016
+﻿/* Attempt Vector256 #1
+Highest number of 1s rolled in 1000000000 rounds: 100
+Ran in 00:00:01.9374092
 
-real    0m10.370s
-user    1m7.437s
-sys     0m0.319s
+real 0m2.626s
+user 0m23.794s
+sys  0m0.138s
 */
 
 namespace Graveler;
