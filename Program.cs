@@ -1,10 +1,10 @@
-﻿/* Attempt Vector256 #1
-Highest number of 1s rolled in 1000000000 rounds: 100
-Ran in 00:00:01.9374092
+﻿/* Attempt net10.0 + memory improvements
+Highest number of 1s rolled in 1000000000 rounds: 101
+Ran in 00:00:01.5319304
 
-real 0m2.626s
-user 0m23.794s
-sys  0m0.138s
+real 0m1.553s
+user 0m18.267s
+sys  0m0.012s
 */
 
 namespace Graveler;
@@ -55,29 +55,28 @@ class Program
             */
 
             // Get random bytes
-            Span<byte> randBytes = stackalloc byte[64];
+            Span<byte> randBytes = threadLocal.arr; // Cast array to span. Faster than stackalloc-ing every time. Casting to a span also seems to be faster than just using the array directly? (Also, keeping a Memory<byte> in the thread local was slower too.)
             threadLocal.r.NextBytes(randBytes);
 
-            // Make a read-only span out of it so the Vector256 constructor accepts it
-            ReadOnlySpan<byte> ro = randBytes;
-
             // Create a Vector256 out of the first 32 bytes
-            Vector256<byte> a = Vector256.Create(ro);
+            Vector256<byte> a = Vector256.Create(randBytes);
 
             // Create a Vector256 out of the second 32 bytes
-            Vector256<byte> b = Vector256.Create(ro[32..]);
+            Vector256<byte> b = Vector256.Create(randBytes[32..]);
 
             // AND them together and reinterpret as int64s for less PopCount calls.
-            Vector256<long> c = Vector256.BitwiseAnd(a, b).AsInt64();
+            Vector256<ulong> c = Vector256.BitwiseAnd(a, b).AsUInt64();
 
-            // Get PopCount. 
-            NumberOf1sRolled = unchecked((byte)BitOperations.PopCount((ulong)c[0]));
-            NumberOf1sRolled += unchecked((byte)BitOperations.PopCount((ulong)c[1]));
-            NumberOf1sRolled += unchecked((byte)BitOperations.PopCount((ulong)c[2]));
-            NumberOf1sRolled += unchecked((byte)BitOperations.PopCount((ulong)c[3] >>> 25)); // Discard 25 bits.
+            // Get PopCount. (No avx512_vpopcntdq in dotnet yet, see https://github.com/dotnet/runtime/issues/96162)
+            NumberOf1sRolled = unchecked((byte)BitOperations.PopCount(c[0]));
+            NumberOf1sRolled += unchecked((byte)BitOperations.PopCount(c[1]));
+            NumberOf1sRolled += unchecked((byte)BitOperations.PopCount(c[2]));
+            NumberOf1sRolled += unchecked((byte)BitOperations.PopCount(c[3] >>> 25)); // Discard 25 bits.
 
             // Parallel reduction stuff. If this go round was our best, save it.
-            threadLocal.b = NumberOf1sRolled > threadLocal.b ? NumberOf1sRolled : threadLocal.b;
+            if (NumberOf1sRolled > threadLocal.b)
+                threadLocal.b = NumberOf1sRolled;
+                
             return threadLocal;
         }, (x) =>
         {
@@ -99,9 +98,11 @@ struct RandAndByte
 {
     public Random r;
     public byte b;
+    public byte[] arr; // Can't keep span in a thread local (ref struct limitations), but this at least helps prevent allocations.
     public RandAndByte()
     {
         r = new();
         b = 0;
+        arr = new byte[64];
     }
 };
