@@ -1,5 +1,5 @@
 ## How to run
-### Install .NET 8
+### Install .NET 10
 Follow the instructions at https://dotnet.microsoft.com/en-us/download
 ### Clone this repo
 either run `git clone https://github.com/Squaduck/Graveler.git` or click the big green "<> Code" button above and click "Download ZIP"
