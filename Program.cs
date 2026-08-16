@@ -1,10 +1,10 @@
-﻿/* Attempt Parallel.Invoke + refactor
+﻿/* Attempt Parallel.Invoke + old int64 implementation
 Highest number of 1s rolled in 1000000000 rounds: 100
-Ran in 00:00:01.1708345
+Ran in 00:00:02.1567085
 
-real 0m1.188s
-user 0m13.914s
-sys  0m0.011s
+real 0m2.174s
+user 0m25.733s
+sys  0m0.007s
 */
 
 namespace Graveler;
@@ -14,7 +14,6 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Numerics;
-using System.Runtime.Intrinsics;
 using System.Runtime.CompilerServices;
 
 class Program
@@ -30,10 +29,6 @@ class Program
         // Each group of 231 dice is a round
         // We want to track the highest number of times a '1' is rolled in a round
         // Inspired by https://www.youtube.com/watch?v=M8C8dHQE2Ro where a program solving the same problem took 8 days to run for 1 billion rounds
-
-        // Warn if SIMD acceleration isn't available.
-        if (!(Vector256<byte>.IsSupported && Vector256.IsHardwareAccelerated))
-            Console.WriteLine($"WARNING:\nVector256<byte>.IsSupported: {Vector256<byte>.IsSupported}\nVector256.IsHardwareAccelerated: {Vector256.IsHardwareAccelerated}\nThe previous implementation may be faster on this CPU.");
 
         // Start a stopwatch.
         Stopwatch stopwatch = Stopwatch.StartNew();
@@ -71,47 +66,27 @@ class Program
     [MethodImpl(MethodImplOptions.AggressiveInlining)] // I'm not sure if this is actually doing anything.
     public static void RollRounds(int numRoundsToDo)
     {
-        Span<byte> randBytes = stackalloc byte[64];
         Random random = new();
         byte localHighestNumberOf1sRolled = 0;
 
         for (int i = 0; i < numRoundsToDo; i++)
         {
-            /*
-                Rethinking it yet again: 
-                We want to simulate 231 1-in-4 probabilities. 
-                Each 1-in-4 probability is equivalent to 2 1-in-2 probabilities ANDed together.
-                If we can get 462 1-in-2 probabilities, and AND pairs together, we'll have 231 1-in-4 probabilities
-                Each bit in a random number is a 1-in-2 probability
-                So we need 462 bits in two 231-bit vectors to AND together.
-                Sounds like AVX512 could work!
-                Or avx256 would suffice, since my 7600x doesn't have full width avx-512. 
-                It only has a half-width avx512 pipeline, and does two* operations to complete avx512 instructions.
-                    *Two times what it would have to do for a 256-wide pipeline. It's probably more than one "step."
+            byte numberOf1sRolled = 0;
 
-                231 bits / 8 bits per byte = 28.875 bytes per vector. 
-                58 bytes total
-                256-231=25
-            */
+            for (int j = 0; j < 231 / 63; j++) // loops 3 times for 189 bits.
+            {
+                // Generate 2 random numbers each with 31 random bits. (Sign bit is never set.)
+                // AND them together, resulting in a number where each bit is set only if both of the corresponding bits were set in the original numbers.
+                // The odds of each bit being set in each original number is 50/50, so its 1/4 odds that the same bit in each of the numbers was set. 
+                // Just count the number of bits set in the result, and it's equivalent to the number of 1's rolled in 31 d4 rolls.
+                // This is a very bad explanation, but I think my math checks out.
+                numberOf1sRolled += (byte)BitOperations.PopCount((ulong)(random.NextInt64() & random.NextInt64()));
+            }
 
-            // Get random bytes
-            random.NextBytes(randBytes);
-
-            // Create a Vector256 out of the first 32 bytes
-            Vector256<byte> a = Vector256.Create(randBytes);
-
-            // Create a Vector256 out of the second 32 bytes
-            Vector256<byte> b = Vector256.Create(randBytes[32..64]);
-
-            // AND them together and reinterpret as int64s for less PopCount calls.
-            Vector256<ulong> c = Vector256.BitwiseAnd(a, b).AsUInt64();
-
-            // Get PopCount. (No avx512_vpopcntdq in dotnet yet, see https://github.com/dotnet/runtime/issues/96162)
-            byte numberOf1sRolled;
-            numberOf1sRolled = unchecked((byte)BitOperations.PopCount(c[0]));
-            numberOf1sRolled += unchecked((byte)BitOperations.PopCount(c[1]));
-            numberOf1sRolled += unchecked((byte)BitOperations.PopCount(c[2]));
-            numberOf1sRolled += unchecked((byte)BitOperations.PopCount(c[3] >>> 25)); // Discard 25 bits.
+            // 231 % 63 = 42
+            // The loop above misses 42 dice rolls.
+            // 63-42 = 21 bits that need to be discarded.
+            numberOf1sRolled += (byte)BitOperations.PopCount((ulong)(random.NextInt64() & random.NextInt64()) >>> 21);
 
             // If this go round was our best, save it.
             if (numberOf1sRolled > localHighestNumberOf1sRolled)
