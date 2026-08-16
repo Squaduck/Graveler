@@ -1,10 +1,10 @@
-﻿/* Attempt net10.0 + memory improvements
-Highest number of 1s rolled in 1000000000 rounds: 101
-Ran in 00:00:01.5319304
+﻿/* Attempt Parallel.Invoke
+Highest number of 1s rolled in 1000000000 rounds: 100
+Ran in 00:00:01.1692795
 
-real 0m1.553s
-user 0m18.267s
-sys  0m0.012s
+real 0m1.186s
+user 0m13.909s
+sys  0m0.008s
 */
 
 namespace Graveler;
