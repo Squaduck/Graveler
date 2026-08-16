@@ -39,7 +39,9 @@ class Program
         Stopwatch stopwatch = Stopwatch.StartNew();
 
         // Determine how much work to give to each thread.
-        int threads = Environment.ProcessorCount; // This ignores big-little designs, or any other kind of non-uniform CPU topology
+        // This ignores big-little designs, or any other kind of non-uniform CPU topology.
+        // For recent Intel systems, using Parallel.For may be faster. (Or manually setting threads to the number of threads that support AVX512.)
+        int threads = Environment.ProcessorCount;
         int baseCount = NUM_ROUNDS_TO_SIM / threads;
         int leftoverCount = NUM_ROUNDS_TO_SIM % threads;
 
@@ -115,7 +117,7 @@ class Program
             if (numberOf1sRolled > localHighestNumberOf1sRolled)
                 localHighestNumberOf1sRolled = numberOf1sRolled;
         }
-        
+
         // Check if our thread's highest number of 1s rolled is the overall highest.
         lock (HighestNumberOf1sRolled_lock)
         {
