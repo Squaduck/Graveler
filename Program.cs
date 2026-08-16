@@ -113,16 +113,3 @@ class Program
         Console.WriteLine($"Ran in {sw.Elapsed}");
     }
 }
-
-struct RandAndByte
-{
-    public Random r;
-    public byte b;
-    public byte[] arr; // Can't keep span in a thread local (ref struct limitations), but this at least helps prevent allocations.
-    public RandAndByte()
-    {
-        r = new();
-        b = 0;
-        arr = new byte[64];
-    }
-};
