@@ -30,7 +30,7 @@ class Program
         Stopwatch sw = Stopwatch.StartNew();
 
         byte HighestNumberOf1sRolled = 0;
-        object toBeLocked = new(); // For thread safety.
+        System.Threading.Lock toBeLocked = new(); // For thread safety.
         const int NUM_ROUNDS_TO_SIM = 1000000000;
 
         Parallel.For<RandAndByte>(0, NUM_ROUNDS_TO_SIM, () => new(), (x, loopState, threadLocal) =>
@@ -56,13 +56,13 @@ class Program
 
             // Get random bytes
             Span<byte> randBytes = threadLocal.arr; // Cast array to span. Faster than stackalloc-ing every time. Casting to a span also seems to be faster than just using the array directly? (Also, keeping a Memory<byte> in the thread local was slower too.)
-            threadLocal.r.NextBytes(randBytes);
+            threadLocal.r.NextBytes(randBytes); // Fill a slice excluding 3 bytes? we're going to discard 25 bits anyway, so we could just not generate 24 of them.
 
             // Create a Vector256 out of the first 32 bytes
             Vector256<byte> a = Vector256.Create(randBytes);
 
             // Create a Vector256 out of the second 32 bytes
-            Vector256<byte> b = Vector256.Create(randBytes[32..]);
+            Vector256<byte> b = Vector256.Create(randBytes[32..64]);
 
             // AND them together and reinterpret as int64s for less PopCount calls.
             Vector256<ulong> c = Vector256.BitwiseAnd(a, b).AsUInt64();
